@@ -107,3 +107,13 @@ main {
   background: #6b7280;
   border-radius: 3px;
 }
+
+/* Custom rotation animation for loader */
+@keyframes rotation {
+  0% {
+    transform: translateY(-50%) rotate(0deg);
+  }
+  100% {
+    transform: translateY(-50%) rotate(360deg);
+  }
+}

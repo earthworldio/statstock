@@ -6,7 +6,7 @@ import { Stock } from '@/app/types/stock'
 
 interface StockSearchProps {
   onSearchResults?: (stocks: Stock[]) => void
-  onStockSelect?: (symbol: string) => void
+  onStockSelect?: (symbol: string, companyName: string) => void
   placeholder?: string
   className?: string
 }
@@ -105,7 +105,13 @@ export default function StockSearch({
 
         {/* Loading Spinner */}
         {loading && (
-          <Loader2 className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-green-400 animate-spin" />
+          <div 
+            className="absolute right-4 top-1/2 w-5 h-5 border-2 border-green-400 border-b-transparent rounded-full"
+            style={{ 
+              transform: 'translateY(-50%)',
+              animation: 'rotation 1s linear infinite'
+            }} 
+          />
         )}
       </div>
 
@@ -151,7 +157,7 @@ export default function StockSearch({
                     </div>
                     <button
                       onClick={() => {
-                        onStockSelect?.(stock.symbol)
+                        onStockSelect?.(stock.symbol, stock.name)
                         setShowResults(false)
                         setQuery('')
                       }}

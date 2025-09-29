@@ -8,8 +8,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "StatStock - Professional Stock Analysis Platform",
-  description: "Advanced stock analysis and DCF calculator for professional investors",
+  title: "StatStock - Easier to Analyze Stock",
+  description: "Revese DCF Stock Analyzer",
 };
 
 export default function RootLayout({

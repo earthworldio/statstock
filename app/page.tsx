@@ -19,8 +19,15 @@ export default function Home() {
     console.log('Search results for Puppeteer:', stocks)
   }
 
-  const handleStockSelect = async (symbol: string) => {
-    console.log('Selected stock symbol:', symbol)
+  const handleStockSelect = async (symbol: string, companyName: string) => {
+    // อัปเดตชื่อบริษัททันทีจาก search API
+    setSelectedStock(prev => ({
+      ...prev,
+      symbol: symbol,
+      name: companyName,
+      companyName: companyName
+    }))
+    
     setLoading(true)
     
     try {
@@ -33,22 +40,19 @@ export default function Home() {
       })
       
       const data = await response.json()
-      console.log('Puppeteer result:', data)
       
       if (data.status === 'success' && data.data) {
-        setSelectedStock({
-          symbol: symbol,
-          name: data.data.companyName || symbol,
+        setSelectedStock(prev => ({
+          ...prev,
           price: parseFloat(data.data.currentPrice) || 0,
           change: parseFloat(data.data.priceChange) || 0,
           changePercent: parseFloat(data.data.priceChangePercent?.replace(/[()%]/g, '')) || 0,
-          companyName: data.data.companyName || '',
           currentPrice: data.data.currentPrice || '',
           priceChange: data.data.priceChange || '',
           priceChangePercent: data.data.priceChangePercent || ''
-        })
+        }))
 
-        // Fetch chart image
+
         try {
           const chartResponse = await fetch('/api/puppeteer/chart', {
             method: 'POST',
@@ -114,7 +118,7 @@ export default function Home() {
                     ) : (
                       <div className="flex items-center space-x-4">
                         <span className="text-3xl font-bold text-white">
-                          {selectedStock.currentPrice || formatCurrency(selectedStock.price)}
+                          {selectedStock.currentPrice || formatCurrency(selectedStock.price)} $
                         </span>
                         <span className={`text-lg font-semibold ${
                           (selectedStock.priceChange && parseFloat(selectedStock.priceChange) >= 0) || 

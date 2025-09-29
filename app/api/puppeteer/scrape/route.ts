@@ -54,10 +54,7 @@ export async function POST(request: NextRequest) {
         return stats
       }
       
-      const nameElement = mainContainer.querySelector('h1')
-      if (nameElement) {
-        stats.companyName = nameElement.textContent?.trim()
-      }
+
       
       const priceElement = mainContainer.querySelector('[data-testid="qsp-price"]')
       if (priceElement) {
