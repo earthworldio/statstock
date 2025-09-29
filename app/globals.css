@@ -55,7 +55,7 @@ a {
 }
 
 /* Prevent scroll on all elements */
-*:not(.stock-search-dropdown):not(.recent-stocks-scroll):not(.recent-stocks-horizontal-scroll) {
+*:not(.stock-search-dropdown):not(.recent-stocks-scroll):not(.recent-stocks-horizontal-scroll):not(.search-results-dropdown):not(.stock-search-container) {
   overflow: hidden;
 }
 
@@ -64,7 +64,8 @@ a {
 .overflow-x-auto,
 .stock-search-dropdown,
 .recent-stocks-scroll,
-.recent-stocks-horizontal-scroll {
+.recent-stocks-horizontal-scroll,
+.search-results-dropdown {
   overflow-y: auto !important;
 }
 

@@ -10,6 +10,7 @@ import { CalculatorData } from '../types'
 const Calculator: React.FC = () => {
   
   const [activeCalculation, setActiveCalculation] = useState<'dcf' | 'pe' | 'pb'>('dcf')
+  
   const [data, setData] = useState<CalculatorData>({
     ev: 133.25,
     rf: 4.5,
@@ -30,11 +31,6 @@ const Calculator: React.FC = () => {
     }))
   }
 
-  const calculateResult = () => {
-    const requiredReturn = data.rf + (data.beta * data.erp)
-    const intrinsicValue = data.ev * (1 + data.g / 100) / (requiredReturn / 100 - data.g / 100)
-    return intrinsicValue
-  }
 
   const metrics = [
     { label: 'EV', value: `${data.ev} B`, field: 'ev', trend: 'neutral' as const },
@@ -46,11 +42,11 @@ const Calculator: React.FC = () => {
 
   return (
     <Card className="p-4 md:p-6 lg:p-8 h-full flex flex-col">
-      <div className="flex-1 space-y-4 md:space-y-6">
+      <div className="flex-1 flex flex-col space-y-4 md:space-y-6 lg:space-y-2">
         {/* Calculation Type Selector */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-white">Calculator Type</h3>
-          <div className="flex flex-wrap gap-2">
+        <div className="space-y-4 lg:space-y-6">
+          <h3 className="text-xl font-semibold text-white">Calculator Type</h3>
+          <div className="flex flex-wrap gap-2 lg:gap-4">
             {calculationTypes.map((type) => (
               <button
                 key={type.id}
@@ -68,41 +64,61 @@ const Calculator: React.FC = () => {
         </div>
 
         {/* Metrics Section */}
-        <div className="space-y-4">
+        <div className="flex-1 space-y-4 lg:space-y-1">
         {metrics.map((metric, index) => (
-          <div key={metric.label} className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-800 text-white text-sm font-medium">
+          <div key={metric.label} className="flex items-center justify-between py-2 lg:py-3">
+            <div className="flex items-center space-x-4 lg:space-x-6">
+              <div className="flex items-center justify-center w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-gray-800 text-white text-sm lg:text-base font-medium">
                 {index + 1}
               </div>
-              <div className="flex items-center space-x-3">
-                <span className="text-white font-medium w-12">{metric.label}</span>
-                <span className="text-gray-300">{metric.value}</span>
+              <div className="flex items-center space-x-3 lg:space-x-4">
+                <span className="text-white font-medium w-12 lg:w-16">{metric.label}</span>
+                <span className="text-gray-300 lg:text-base">{metric.value}</span>
               </div>
             </div>
-            <div className="flex items-center space-x-2">
-              {metric.trend === 'up' && <TrendingUp className="h-4 w-4 text-green-400" />}
-              {metric.trend === 'down' && <TrendingDown className="h-4 w-4 text-red-400" />}
-              {metric.trend === 'neutral' && <Minus className="h-4 w-4 text-gray-400" />}
-              <input
-                type="number"
-                step="0.1"
-                value={data[metric.field as keyof CalculatorData]}
-                onChange={(e) => handleInputChange(metric.field as keyof CalculatorData, e.target.value)}
-                className="w-20 h-8 px-2 text-sm rounded border border-gray-700 bg-gray-800 text-white focus:border-green-500 focus:outline-none"
-              />
+            <div className="flex items-center space-x-2 lg:space-x-3">
+              <div className="flex items-center">
+                <button
+                  onClick={() => {
+                    const currentValue = data[metric.field as keyof CalculatorData]
+                    const newValue = Math.max(0, currentValue - 0.1)
+                    handleInputChange(metric.field as keyof CalculatorData, newValue.toString())
+                  }}
+                  className="w-6 h-8 lg:w-8 lg:h-10 flex items-center justify-center rounded-l border border-gray-700 bg-gray-800 hover:bg-gray-700 text-white transition-colors"
+                >
+                  <TrendingDown className="h-3 w-3 text-red-400" />
+                </button>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={data[metric.field as keyof CalculatorData]}
+                  onChange={(e) => handleInputChange(metric.field as keyof CalculatorData, e.target.value)}
+                  className="w-20 h-8 lg:w-14 lg:h-10 px-2 text-center
+                  text-sm lg:text-sm rounded-none border-t border-b border-gray-700 bg-gray-800 text-white focus:border-green-500 focus:outline-none"
+                />
+                <button
+                  onClick={() => {
+                    const currentValue = data[metric.field as keyof CalculatorData]
+                    const newValue = currentValue + 0.1
+                    handleInputChange(metric.field as keyof CalculatorData, newValue.toString())
+                  }}
+                  className="w-6 h-8 lg:w-8 lg:h-10 flex items-center justify-center rounded-r border border-gray-700 bg-gray-800 hover:bg-gray-700 text-white transition-colors"
+                >
+                  <TrendingUp className="h-3 w-3 text-green-400" />
+                </button>
+              </div>
             </div>
           </div>
         ))}
         
-        <div className="flex-shrink-0 pt-4 mt-auto">
+        <div className="flex-shrink-0 pt-4 lg:pt-1">
           <Button className="w-full" size="md">
             Calculate {activeCalculation.toUpperCase()}
           </Button>
         </div>
       </div>
     </div>
-  </Card>
+    </Card>
   )
 }
 

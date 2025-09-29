@@ -8,20 +8,79 @@ import StockSearch from './components/stock-search'
 import { recentStocks, currentStock } from './data/stocks'
 import { formatCurrency, formatPercentage } from './lib/utils'
 import { Stock } from './types/stock'
+import { useState } from 'react'
 
 export default function Home() {
+  const [selectedStock, setSelectedStock] = useState(currentStock)
+  const [loading, setLoading] = useState(false)
+  const [chartImage, setChartImage] = useState<string | null>(null)
 
   const handleSearchResults = (stocks: Stock[]) => {
+    console.log('Search results for Puppeteer:', stocks)
+  }
 
+  const handleStockSelect = async (symbol: string) => {
+    console.log('Selected stock symbol:', symbol)
+    setLoading(true)
+    
+    try {
+      const response = await fetch('/api/puppeteer/scrape', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ symbol }),
+      })
+      
+      const data = await response.json()
+      console.log('Puppeteer result:', data)
+      
+      if (data.status === 'success' && data.data) {
+        setSelectedStock({
+          symbol: symbol,
+          name: data.data.companyName || symbol,
+          price: parseFloat(data.data.currentPrice) || 0,
+          change: parseFloat(data.data.priceChange) || 0,
+          changePercent: parseFloat(data.data.priceChangePercent?.replace(/[()%]/g, '')) || 0,
+          companyName: data.data.companyName || '',
+          currentPrice: data.data.currentPrice || '',
+          priceChange: data.data.priceChange || '',
+          priceChangePercent: data.data.priceChangePercent || ''
+        })
+
+        // Fetch chart image
+        try {
+          const chartResponse = await fetch('/api/puppeteer/chart', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ symbol }),
+          })
+          
+          const chartData = await chartResponse.json()
+          if (chartData.status === 'success' && chartData.chartScreenshot) {
+            setChartImage(chartData.chartScreenshot)
+          }
+        } catch (chartError) {
+          console.error('Error fetching chart:', chartError)
+        }
+      }
+    } catch (error) {
+      console.error('Error calling Puppeteer:', error)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
     <MainLayout>
-      <div className="h-full flex flex-col px-20 py-6">
+      <div className="h-full flex flex-col px-10 py-6">
         {/* Search Bar */}
         <div className="mb-6 md:mb-8 lg:mb-12">
           <StockSearch
             onSearchResults={handleSearchResults}
+            onStockSelect={handleStockSelect}
             className="max-w-2xl"
             placeholder="Search -> ( e.g. AAPL , Tesla )"
           />
@@ -34,27 +93,60 @@ export default function Home() {
             {/* Stock Info */}
             <div className="h-full">
               <Card className="p-4 md:p-6 lg:p-8 h-full flex flex-col">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-                  <div>
-                    <div className="flex items-center space-x-3 mb-2">
-                      <h1 className="text-3xl font-bold text-white">
-                        S T A T S T O C K
-                      </h1>
-                    </div>
-                    <div className="flex items-center space-x-2 mb-2">
-                      <span className="text-sm text-gray-400"></span>
-                    </div>
-                  </div>
-                </div>
 
                 <div className="flex-1 prose prose-invert max-w-none">
-                  <p className="text-gray-300 leading-relaxed mb-6">
-                    
-                  </p>
+                  <div className="mb-6">
+                    <h2 className="text-2xl font-bold text-white mb-4">
+                      {selectedStock.companyName || selectedStock.name}
+                    </h2>
+                    {loading ? (
+                      <div className="flex items-center space-x-4">
+                        <div className="animate-pulse">
+                          <div className="h-8 w-32 bg-gray-700 rounded"></div>
+                        </div>
+                        <div className="animate-pulse">
+                          <div className="h-6 w-20 bg-gray-700 rounded"></div>
+                        </div>
+                        <div className="animate-pulse">
+                          <div className="h-6 w-16 bg-gray-700 rounded"></div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center space-x-4">
+                        <span className="text-3xl font-bold text-white">
+                          {selectedStock.currentPrice || formatCurrency(selectedStock.price)}
+                        </span>
+                        <span className={`text-lg font-semibold ${
+                          (selectedStock.priceChange && parseFloat(selectedStock.priceChange) >= 0) || 
+                          (!selectedStock.priceChange && selectedStock.change >= 0) 
+                            ? 'text-green-400' 
+                            : 'text-red-400'
+                        }`}>
+                          {selectedStock.priceChange || formatCurrency(selectedStock.change)}
+                        </span>
+                        <span className={`text-lg font-semibold ${
+                          (selectedStock.priceChangePercent && parseFloat(selectedStock.priceChangePercent.replace(/[()%]/g, '')) >= 0) || 
+                          (!selectedStock.priceChangePercent && selectedStock.changePercent >= 0) 
+                            ? 'text-green-400' 
+                            : 'text-red-400'
+                        }`}>
+                          {selectedStock.priceChangePercent || formatPercentage(selectedStock.changePercent)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
 
                   <div className="mt-6">
-                    
-                    
+                    {chartImage && (
+                      <div className="">
+                        <div className="w-full">
+                          <img 
+                            src={chartImage} 
+                            alt={`${selectedStock.symbol} Chart`}
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </Card>
