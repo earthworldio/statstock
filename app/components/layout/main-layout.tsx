@@ -10,10 +10,10 @@ interface MainLayoutProps {
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950">
-      <div className="flex">
+    <div className="h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 overflow-hidden">
+      <div className="flex h-full">
         <Sidebar className="hidden lg:block" />
-        <main className="flex-1 p-6">
+        <main className="flex-1 overflow-hidden">
           {children}
         </main>
       </div>

@@ -11,7 +11,6 @@ export interface StockMetric {
   value: string | number
   trend?: 'up' | 'down' | 'neutral'
 }
-
 export interface CalculatorData {
   ev: number
   rf: number
@@ -19,3 +18,4 @@ export interface CalculatorData {
   g: number
   beta: number
 }
+

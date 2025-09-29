@@ -8,6 +8,7 @@ import Input from './ui/input'
 import { CalculatorData } from '../types'
 
 const Calculator: React.FC = () => {
+  
   const [activeCalculation, setActiveCalculation] = useState<'dcf' | 'pe' | 'pb'>('dcf')
   const [data, setData] = useState<CalculatorData>({
     ev: 133.25,
@@ -30,7 +31,6 @@ const Calculator: React.FC = () => {
   }
 
   const calculateResult = () => {
-    // Simple DCF calculation example
     const requiredReturn = data.rf + (data.beta * data.erp)
     const intrinsicValue = data.ev * (1 + data.g / 100) / (requiredReturn / 100 - data.g / 100)
     return intrinsicValue
@@ -45,8 +45,8 @@ const Calculator: React.FC = () => {
   ]
 
   return (
-    <Card className="p-6">
-      <div className="space-y-6">
+    <Card className="p-4 md:p-6 lg:p-8 h-full flex flex-col">
+      <div className="flex-1 space-y-4 md:space-y-6">
         {/* Calculation Type Selector */}
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-white">Calculator Type</h3>
@@ -95,16 +95,16 @@ const Calculator: React.FC = () => {
           </div>
         ))}
         
-        <div className="pt-2">
+        <div className="flex-shrink-0 pt-4 mt-auto">
           <Button className="w-full" size="md">
             Calculate {activeCalculation.toUpperCase()}
           </Button>
         </div>
-        
-        </div>
       </div>
-    </Card>
+    </div>
+  </Card>
   )
 }
+
 
 export default Calculator

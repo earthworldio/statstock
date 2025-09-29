@@ -11,7 +11,9 @@ html,
 body {
   max-width: 100vw;
   overflow-x: hidden;
-  height: 100%;
+  overflow-y: hidden;
+  height: 100vh;
+  min-height: 100vh;
 }
 
 body {
@@ -36,6 +38,7 @@ a {
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -49,4 +52,57 @@ a {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #9ca3af;
+}
+
+/* Prevent scroll on all elements */
+*:not(.stock-search-dropdown):not(.recent-stocks-scroll):not(.recent-stocks-horizontal-scroll) {
+  overflow: hidden;
+}
+
+/* Allow scroll only on specific elements */
+.overflow-y-auto,
+.overflow-x-auto,
+.stock-search-dropdown,
+.recent-stocks-scroll,
+.recent-stocks-horizontal-scroll {
+  overflow-y: auto !important;
+}
+
+.recent-stocks-horizontal-scroll {
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+}
+
+/* Ensure main container doesn't cause scroll */
+main {
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Custom scrollbar for recent stocks */
+.recent-stocks-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.recent-stocks-scroll::-webkit-scrollbar-track {
+  background: #1f2937;
+}
+
+.recent-stocks-scroll::-webkit-scrollbar-thumb {
+  background: #6b7280;
+  border-radius: 2px;
+}
+
+/* Custom scrollbar for horizontal recent stocks */
+.recent-stocks-horizontal-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.recent-stocks-horizontal-scroll::-webkit-scrollbar-track {
+  background: #1f2937;
+}
+
+.recent-stocks-horizontal-scroll::-webkit-scrollbar-thumb {
+  background: #6b7280;
+  border-radius: 3px;
 }
