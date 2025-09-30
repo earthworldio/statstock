@@ -16,11 +16,10 @@ export default function Home() {
   const [chartImage, setChartImage] = useState<string | null>(null)
 
   const handleSearchResults = (stocks: Stock[]) => {
-    console.log('Search results for Puppeteer:', stocks)
   }
 
   const handleStockSelect = async (symbol: string, companyName: string) => {
-    // อัปเดตชื่อบริษัททันทีจาก search API
+    
     setSelectedStock(prev => ({
       ...prev,
       symbol: symbol,
@@ -31,6 +30,7 @@ export default function Home() {
     setLoading(true)
     
     try {
+      
       const response = await fetch('/api/puppeteer/scrape', {
         method: 'POST',
         headers: {
@@ -49,30 +49,35 @@ export default function Home() {
           changePercent: parseFloat(data.data.priceChangePercent?.replace(/[()%]/g, '')) || 0,
           currentPrice: data.data.currentPrice || '',
           priceChange: data.data.priceChange || '',
-          priceChangePercent: data.data.priceChangePercent || ''
+          priceChangePercent: data.data.priceChangePercent || '',
+              enterpriseValue: data.data.enterpriseValue || '',
+              beta: data.data.beta || '',
+              fcfm: data.data.fcfm || ''
         }))
-
-
-        try {
-          const chartResponse = await fetch('/api/puppeteer/chart', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ symbol }),
-          })
-          
-          const chartData = await chartResponse.json()
-          if (chartData.status === 'success' && chartData.chartScreenshot) {
-            setChartImage(chartData.chartScreenshot)
-          }
-        } catch (chartError) {
-          console.error('Error fetching chart:', chartError)
-        }
       }
+      
+      setLoading(false)
+
+
+      try {
+        const chartResponse = await fetch('/api/puppeteer/chart', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ symbol }),
+        })
+        
+        const chartData = await chartResponse.json()
+        if (chartData.status === 'success' && chartData.chartScreenshot) {
+          setChartImage(chartData.chartScreenshot)
+        }
+      } catch (chartError) {
+        console.error('Error fetching chart:', chartError)
+      }
+      
     } catch (error) {
       console.error('Error calling Puppeteer:', error)
-    } finally {
       setLoading(false)
     }
   }
@@ -93,72 +98,90 @@ export default function Home() {
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col gap-6 md:gap-8 lg:gap-10 min-h-0">
           {/* Stock Info & Calculator Container */}
-          <div className="flex-1 grid grid-cols-1 lg:grid-cols-[7fr_3fr] gap-6 md:gap-8 lg:gap-10">
+          <div className="flex-1 grid grid-cols-1 lg:grid-cols-[6.5fr_3.5fr] gap-6 md:gap-8 lg:gap-10">
             {/* Stock Info */}
             <div className="h-full">
               <Card className="p-4 md:p-6 lg:p-8 h-full flex flex-col">
-
                 <div className="flex-1 prose prose-invert max-w-none">
-                  <div className="mb-6">
-                    <h2 className="text-2xl font-bold text-white mb-4">
-                      {selectedStock.companyName || selectedStock.name}
-                    </h2>
-                    {loading ? (
-                      <div className="flex items-center space-x-4">
-                        <div className="animate-pulse">
-                          <div className="h-8 w-32 bg-gray-700 rounded"></div>
-                        </div>
-                        <div className="animate-pulse">
-                          <div className="h-6 w-20 bg-gray-700 rounded"></div>
-                        </div>
-                        <div className="animate-pulse">
-                          <div className="h-6 w-16 bg-gray-700 rounded"></div>
-                        </div>
+                  {selectedStock.symbol ? (
+                    <>
+                      <div className="mb-6">
+                        <h2 className="text-2xl font-bold text-white mb-4">
+                          {selectedStock.companyName} ({selectedStock.symbol})
+                        </h2>
+                        {loading ? (
+                          <div className="flex items-center space-x-4">
+                            <div className="animate-pulse">
+                              <div className="h-8 w-32 bg-gray-700 rounded"></div>
+                            </div>
+                            <div className="animate-pulse">
+                              <div className="h-6 w-20 bg-gray-700 rounded"></div>
+                            </div>
+                            <div className="animate-pulse">
+                              <div className="h-6 w-16 bg-gray-700 rounded"></div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center space-x-4">
+                            <span className="text-3xl font-bold text-white">
+                              {selectedStock.currentPrice || formatCurrency(selectedStock.price)} $
+                            </span>
+                            <span className={`text-lg font-semibold ${
+                              (selectedStock.priceChange && parseFloat(selectedStock.priceChange) >= 0) || 
+                              (!selectedStock.priceChange && selectedStock.change >= 0) 
+                                ? 'text-green-400' 
+                                : 'text-red-400'
+                            }`}>
+                              {selectedStock.priceChange || formatCurrency(selectedStock.change)}
+                            </span>
+                            <span className={`text-lg font-semibold ${
+                              (selectedStock.priceChangePercent && parseFloat(selectedStock.priceChangePercent.replace(/[()%]/g, '')) >= 0) || 
+                              (!selectedStock.priceChangePercent && selectedStock.changePercent >= 0) 
+                                ? 'text-green-400' 
+                                : 'text-red-400'
+                            }`}>
+                              {selectedStock.priceChangePercent || formatPercentage(selectedStock.changePercent)}
+                            </span>
+                          </div>
+                        )}
                       </div>
-                    ) : (
-                      <div className="flex items-center space-x-4">
-                        <span className="text-3xl font-bold text-white">
-                          {selectedStock.currentPrice || formatCurrency(selectedStock.price)} $
-                        </span>
-                        <span className={`text-lg font-semibold ${
-                          (selectedStock.priceChange && parseFloat(selectedStock.priceChange) >= 0) || 
-                          (!selectedStock.priceChange && selectedStock.change >= 0) 
-                            ? 'text-green-400' 
-                            : 'text-red-400'
-                        }`}>
-                          {selectedStock.priceChange || formatCurrency(selectedStock.change)}
-                        </span>
-                        <span className={`text-lg font-semibold ${
-                          (selectedStock.priceChangePercent && parseFloat(selectedStock.priceChangePercent.replace(/[()%]/g, '')) >= 0) || 
-                          (!selectedStock.priceChangePercent && selectedStock.changePercent >= 0) 
-                            ? 'text-green-400' 
-                            : 'text-red-400'
-                        }`}>
-                          {selectedStock.priceChangePercent || formatPercentage(selectedStock.changePercent)}
-                        </span>
-                      </div>
-                    )}
-                  </div>
 
-                  <div className="mt-6">
-                    {chartImage && (
-                      <div className="">
-                        <div className="w-full">
-                          <img 
-                            src={chartImage} 
-                            alt={`${selectedStock.symbol} Chart`}
-                          />
-                        </div>
+                      <div className="mt-6">
+                        {chartImage && (
+                          <div className="">
+                            <div className="w-full">
+                              <img 
+                                src={chartImage} 
+                                alt={`${selectedStock.symbol} Chart`}
+                              />
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
+                    </>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full text-center">
+                      <div className="mb-8">
+                        <h2 className="text-3xl font-bold text-white mb-4">
+                          Welcome to StatStock
+                        </h2>
+                        <p className="text-gray-300 text-lg mb-6">
+                          Real-time stock analysis platform
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </Card>
             </div>
 
             {/* Calculator */}
             <div className="h-full">
-              <Calculator />
+              <Calculator 
+                enterpriseValue={selectedStock.enterpriseValue}
+                beta={selectedStock.beta}
+                fcfm={selectedStock.fcfm}
+              />
             </div>
           </div>
 

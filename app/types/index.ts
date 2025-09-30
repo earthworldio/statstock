@@ -17,5 +17,6 @@ export interface CalculatorData {
   erp: number
   g: number
   beta: number
+  fcfm: number
 }
 

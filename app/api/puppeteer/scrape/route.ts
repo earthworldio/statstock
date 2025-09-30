@@ -38,12 +38,13 @@ export async function POST(request: NextRequest) {
     
     await page.goto(url, { 
       waitUntil: 'networkidle2',
-      timeout: 30000 
+      timeout: 50000 
     })
 
     await new Promise(resolve => setTimeout(resolve, 3000))
 
-    const data = await page.evaluate(() => {
+       const data = await page.evaluate(() => {
+         console.log('Starting data extraction...')
       
       const stats: any = {}
       
@@ -53,8 +54,6 @@ export async function POST(request: NextRequest) {
         console.log('Main container not found')
         return stats
       }
-      
-
       
       const priceElement = mainContainer.querySelector('[data-testid="qsp-price"]')
       if (priceElement) {
@@ -72,18 +71,95 @@ export async function POST(request: NextRequest) {
         stats.priceChangePercent = changePercentElement.textContent?.trim()
       }
       
+
+  
+      const allRows = document.querySelectorAll('tr.yf-kbx2lo')
+      for (const row of allRows) {
+        const firstCell = row.querySelector('td.yf-kbx2lo')
+        if (firstCell && firstCell.textContent?.includes('Enterprise Value')) {
+          const cells = row.querySelectorAll('td.yf-kbx2lo')
+          if (cells.length >= 2) {
+            stats.enterpriseValue = cells[1].textContent?.trim()
+            break
+          }
+        }
+      }
+
+       const betaRow = document.querySelectorAll('tr.row.yf-vaowmx')
+       for (const row of betaRow) {
+         
+        const labelCell = row.querySelector('td.label.yf-vaowmx')
+        const valueCell = row.querySelector('td.value.yf-vaowmx')
+         
+         if (labelCell && valueCell && labelCell.textContent?.includes('Beta (5Y Monthly)')) {
+           stats.beta = valueCell.textContent?.trim()
+           break
+         }
+       }
+
+
+
+       let revenue = 0
+       let freeCashFlow = 0
+       
+       const statsHighlight = document.querySelector('[data-testid="stats-highlight"]')
+       if (statsHighlight) {
+         const allRows = statsHighlight.querySelectorAll('tr.yf-vaowmx')
+         
+         for (const row of allRows) {
+           const labelCell = row.querySelector('td.label.yf-vaowmx')
+           const valueCell = row.querySelector('td.value.yf-vaowmx')
+           
+           if (labelCell && valueCell) {
+             const labelText = labelCell.textContent?.trim()
+             const valueText = valueCell.textContent?.trim()
+             
+             if (labelText?.match(/Revenue\s+\(ttm\)/)) {
+               const revenueValue = parseFloat(valueText?.replace('B', '') || '0')
+               revenue = revenueValue
+               stats.revenue = revenueValue
+             }
+             
+             if (labelText?.match(/Levered Free Cash Flow\s+\(ttm\)/)) {
+               const fcfValue = parseFloat(valueText?.replace('B', '') || '0')
+               freeCashFlow = fcfValue
+             }
+           }
+         }
+       }
+       
+       if (revenue > 0 && freeCashFlow > 0) {
+         const fcfMargin = (freeCashFlow / revenue) * 100
+         stats.fcfm = fcfMargin.toFixed(2) 
+         console.log('Calculated FCF Margin:', stats.fcfm)
+       } else {
+         stats.fcfm = '0.00'
+       }
+
+       
       return stats
     })
 
-    const result = {
-      symbol,
-      url,
-      status: 'success',
-      data,
-      timestamp: new Date().toISOString()
-    }
+       const result = {
+         symbol,
+         url,
+         status: 'success',
+         data,
+         timestamp: new Date().toISOString()
+       }
 
-    return NextResponse.json(result)
+       // Log ข้อมูลที่ได้ใน terminal
+       console.log('=== PUPPETEER SCRAPING RESULTS ===')
+       console.log('Symbol:', symbol)
+       console.log('Current Price:', data.currentPrice)
+       console.log('Price Change:', data.priceChange)
+       console.log('Enterprise Value:', data.enterpriseValue)
+       console.log('Beta:', data.beta)
+       console.log('Revenue:', data.revenue)
+       console.log('FCF Margin:', data.fcfm)
+       console.log('=====================================')
+
+       return NextResponse.json(result)
 
   } catch (error) {
     console.error('Puppeteer API error:', error)

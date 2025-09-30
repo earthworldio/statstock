@@ -33,5 +33,8 @@ export const currentStock = {
   companyName: '',
   currentPrice: '',
   priceChange: '',
-  priceChangePercent: ''
+  priceChangePercent: '',
+  enterpriseValue: '',
+  beta: '',
+  fcfm: ''
 }
