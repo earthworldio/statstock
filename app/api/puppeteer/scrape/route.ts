@@ -79,7 +79,15 @@ export async function POST(request: NextRequest) {
         if (firstCell && firstCell.textContent?.includes('Enterprise Value')) {
           const cells = row.querySelectorAll('td.yf-kbx2lo')
           if (cells.length >= 2) {
-            stats.enterpriseValue = cells[1].textContent?.trim()
+            let enterpriseValueText = cells[1].textContent?.trim() || ''
+          
+            if (enterpriseValueText.includes('T')) {
+              const numericValue = parseFloat(enterpriseValueText.replace('T', ''))
+              const billionValue = numericValue * 1000 // Convert T to B
+              enterpriseValueText = `${billionValue.toFixed(2)}B`
+            }
+            
+            stats.enterpriseValue = enterpriseValueText
             break
           }
         }
@@ -148,16 +156,6 @@ export async function POST(request: NextRequest) {
          timestamp: new Date().toISOString()
        }
 
-       // Log ข้อมูลที่ได้ใน terminal
-       console.log('=== PUPPETEER SCRAPING RESULTS ===')
-       console.log('Symbol:', symbol)
-       console.log('Current Price:', data.currentPrice)
-       console.log('Price Change:', data.priceChange)
-       console.log('Enterprise Value:', data.enterpriseValue)
-       console.log('Beta:', data.beta)
-       console.log('Revenue:', data.revenue)
-       console.log('FCF Margin:', data.fcfm)
-       console.log('=====================================')
 
        return NextResponse.json(result)
 

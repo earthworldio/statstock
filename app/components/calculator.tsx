@@ -30,7 +30,18 @@ const Calculator: React.FC<CalculatorProps> = ({ enterpriseValue, beta, fcfm }) 
 
   useEffect(() => {
     if (enterpriseValue) {
-      const evValue = parseFloat(enterpriseValue.replace('B', ''))
+      let evValue = 0
+      
+
+      if (enterpriseValue.includes('T')) {
+        const trillionValue = parseFloat(enterpriseValue.replace('T', ''))
+        evValue = trillionValue * 1000 
+      } else if (enterpriseValue.includes('B')) {
+        evValue = parseFloat(enterpriseValue.replace('B', ''))
+      } else {
+        evValue = parseFloat(enterpriseValue)
+      }
+      
       if (!isNaN(evValue)) {
         setData(prev => ({
           ...prev,
@@ -187,18 +198,22 @@ const Calculator: React.FC<CalculatorProps> = ({ enterpriseValue, beta, fcfm }) 
                   <div className="bg-gray-900 p-2 rounded text-xs">
                     <div className="text-gray-400 mb-1">3) Steady-state revenue</div>
                     <div className="text-gray-300 mb-1">REV₍steady₎ = FCF₁ / FCF margin</div>
-                    <div className="text-gray-300">
-                      = {calculationResults.calculations.fcf1.toFixed(1)} / {calculationResults.assumptions.fcfm/100} = ${calculationResults.calculations.steadyStateRevenue.toFixed(1)}B/year
-                    </div>
+                     <div className="text-green-400">
+                     ⇒ REV₍steady₎ = {calculationResults.calculations.fcf1.toFixed(1)} / {(calculationResults.assumptions.fcfm/100).toFixed(2)} = ${calculationResults.calculations.steadyStateRevenue.toFixed(1)}B/year
+                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Summary */}
               <div className="pt-2 border-t border-gray-700">
-                <p className="text-gray-300 text-xs leading-relaxed">
-                  At EV ~${calculationResults.assumptions.ev}B, market expects steady-state revenue of approximately 
-                  <span className="text-green-400 font-semibold">${calculationResults.calculations.steadyStateRevenue.toFixed(1)}B/year</span> (FCF margin {calculationResults.assumptions.fcfm}%, growth {calculationResults.assumptions.g}%, WACC ~{calculationResults.calculations.wacc.toFixed(2)}%) to justify valuation.
+                <p className="text-gray-300 text-xs leading-relaxed flex flex-col">
+                  EV ~${calculationResults.assumptions.ev}B, market expects steady-state revenue of approximately 
+                  <span className="text-green-400 font-semibold"> ${calculationResults.calculations.steadyStateRevenue.toFixed(1)} B / year</span>
+                  <span>
+                  (FCF margin {calculationResults.assumptions.fcfm}%, growth {calculationResults.assumptions.g}%, WACC ~{calculationResults.calculations.wacc.toFixed(2)}%) to justify valuation.
+                  </span> 
+                  
                 </p>
               </div>
             </div>
