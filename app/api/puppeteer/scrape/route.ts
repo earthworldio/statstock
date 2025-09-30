@@ -26,7 +26,9 @@ export async function POST(request: NextRequest) {
         '--disable-accelerated-2d-canvas',
         '--no-first-run',
         '--no-zygote',
-        '--disable-gpu'
+        '--disable-gpu',
+        '--memory-pressure-off',
+        '--max_old_space_size=512'
       ]
     })
 
