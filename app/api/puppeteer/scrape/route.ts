@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import puppeteer from 'puppeteer'
+import chromium from '@sparticuz/chromium'
 
 export async function POST(request: NextRequest) {
   
@@ -19,7 +20,9 @@ export async function POST(request: NextRequest) {
     
     browser = await puppeteer.launch({
       headless: true,
+      executablePath: await chromium.executablePath(),
       args: [
+        ...chromium.args,
         '--no-sandbox',
         '--disable-setuid-sandbox',
         '--disable-dev-shm-usage',
@@ -27,8 +30,10 @@ export async function POST(request: NextRequest) {
         '--no-first-run',
         '--no-zygote',
         '--disable-gpu',
-        '--memory-pressure-off',
-        '--max_old_space_size=1024'
+        '--disable-web-security',
+        '--disable-features=VizDisplayCompositor',
+        '--single-process',
+        '--memory-pressure-off'
       ]
     })
 
@@ -39,8 +44,8 @@ export async function POST(request: NextRequest) {
     const url = `https://finance.yahoo.com/quote/${symbol}/key-statistics/`
     
     await page.goto(url, { 
-      waitUntil: 'networkidle2',
-      timeout: 50000 
+      waitUntil: 'domcontentloaded',
+      timeout: 15000 
     })
 
     await new Promise(resolve => setTimeout(resolve, 3000))
