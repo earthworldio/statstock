@@ -1,13 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    serverComponentsExternalPackages: ['puppeteer']
-  },
+  serverExternalPackages: ['puppeteer'],
   images: {
     domains: ['localhost'],
     unoptimized: true
   },
-  output: 'standalone',
   poweredByHeader: false,
   compress: true,
   
