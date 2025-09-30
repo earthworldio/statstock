@@ -8,8 +8,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "StatStock - Professional Stock Analysis Platform",
-  description: "Advanced stock analysis and DCF calculator for professional investors",
+  title: "StatStock - Easier to Analyze Stock",
+  description: "Revese DCF Stock Analyzer",
 };
 
 export default function RootLayout({
@@ -19,8 +19,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} font-sans antialiased`}>
-        {children}
+      <body className={`${inter.variable} font-sans antialiased min-h-screen flex flex-col`}>
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {children}
+        </div>
       </body>
     </html>
   );

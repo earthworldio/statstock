@@ -25,9 +25,21 @@ export const recentStocks: Stock[] = [
 ]
 
 export const currentStock = {
-  symbol: 'PDD',
-  name: 'PDD Holdings Inc.',
-  price: 130.40,
-  change: -8.64,
-  changePercent: -6.63
+  symbol: '',
+  name: '',
+  price: 0,
+  change: 0,
+  changePercent: 0,
+  companyName: '',
+  currentPrice: '',
+  priceChange: '',
+  priceChangePercent: '',
+  enterpriseValue: '',
+  beta: '',
+  fcfm: '',
+  totalCash: '',
+  totalDebt: '',
+  operatingCashFlow: '',
+  profitMargin: '',
+  returnOnEquity: ''
 }

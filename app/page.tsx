@@ -1,95 +1,142 @@
-import MainLayout from './components/layout/main-layout'
-import StockCard from './components/stock-card'
-import Calculator from './components/calculator'
-import Card from './components/ui/card'
-import { recentStocks, currentStock } from './data/stocks'
-import { formatCurrency, formatPercentage } from './lib/utils'
-import { SearchCheck } from 'lucide-react'
+"use client";
+
+import MainLayout from "./components/layout/main-layout";
+import StockCard from "./components/stock-card";
+import Calculator from "./components/calculator";
+import Card from "./components/ui/card";
+import StockSearch from "./components/stock-search";
+import WelcomeMessage from "./components/welcome-message";
+import StockInfo from "./components/stock-info";
+import RecentStocks from "./components/recent-stocks";
+import { recentStocks, currentStock } from "./data/stocks";
+import { formatCurrency, formatPercentage } from "./lib/utils";
+import { Stock } from "./types";
+import { useState } from "react";
 
 export default function Home() {
+  const [selectedStock, setSelectedStock] = useState(currentStock);
+  const [loading, setLoading] = useState(false);
+  const [chartImage, setChartImage] = useState<string | null>(null);
+
+  const handleSearchResults = (stocks: Stock[]) => {};
+
+  const handleStockSelect = async (symbol: string, companyName: string) => {
+    setSelectedStock((prev) => ({
+      ...prev,
+      symbol: symbol,
+      name: companyName,
+      companyName: companyName,
+    }));
+
+    setLoading(true);
+
+    try {
+      const response = await fetch("/api/puppeteer/scrape", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ symbol }),
+      });
+
+      const data = await response.json();
+
+      if (data.status === "success" && data.data) {
+        setSelectedStock((prev) => ({
+          ...prev,
+          price: parseFloat(data.data.currentPrice) || 0,
+          change: parseFloat(data.data.priceChange) || 0,
+          changePercent:
+            parseFloat(data.data.priceChangePercent?.replace(/[()%]/g, "")) ||
+            0,
+          currentPrice: data.data.currentPrice || "",
+          priceChange: data.data.priceChange || "",
+          priceChangePercent: data.data.priceChangePercent || "",
+          enterpriseValue: data.data.enterpriseValue || "",
+          beta: data.data.beta || "",
+          fcfm: data.data.fcfm || "",
+          totalCash: data.data.totalCash || "",
+          totalDebt: data.data.totalDebt || "",
+          operatingCashFlow: data.data.operatingCashFlow || "",
+          profitMargin: data.data.profitMargin || "",
+          returnOnEquity: data.data.returnOnEquity || "",
+        }));
+      }
+
+      setLoading(false);
+
+      try {
+        const chartResponse = await fetch("/api/puppeteer/chart", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ symbol }),
+        });
+
+        const chartData = await chartResponse.json();
+        if (chartData.status === "success" && chartData.chartScreenshot) {
+          setChartImage(chartData.chartScreenshot);
+        }
+      } catch (chartError) {
+        console.error("Error fetching chart:", chartError);
+      }
+    } catch (error) {
+      console.error("Error calling Puppeteer:", error);
+      setLoading(false);
+    }
+  };
+
   return (
     <MainLayout>
-      <div className="max-w-7xl mx-auto px-4 py-8 space-y-12">
+      <div className="h-full flex flex-col px-10 py-6">
         {/* Search Bar */}
-        <div className="relative max-w-2xl mb-12">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search"
-              className="w-full h-14 pl-12 pr-4 rounded-2xl border border-gray-700/50 bg-gray-900/30 backdrop-blur-md text-white placeholder:text-gray-400 focus:border-green-500/50 focus:outline-none focus:ring-2 focus:ring-green-500/20 transition-all duration-200"
-            />
-          </div>
+        <div className="mb-6 md:mb-8 lg:mb-12">
+          <StockSearch
+            onSearchResults={handleSearchResults}
+            onStockSelect={handleStockSelect}
+            className="max-w-2xl"
+            placeholder="Search -> ( e.g. AAPL , Tesla )"
+          />
         </div>
 
-        {/* Main Stock Display */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 mb-12">
-          <div className="lg:col-span-2 space-y-8">
-            {/* Current Stock Info */}
-            <Card className="p-8">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-                <div>
-                  <h1 className="text-3xl font-bold text-white mb-2">
-                    {currentStock.name} ({currentStock.symbol})
-                  </h1>
-                  <div className="flex items-center space-x-4">
-                    <span className="text-4xl font-bold text-white">
-                      {formatCurrency(currentStock.price)}
-                    </span>
-                    <span className={`text-lg font-medium ${currentStock.changePercent >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                      {formatPercentage(currentStock.changePercent)}
-                    </span>
-                  </div>
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col gap-6 md:gap-8 lg:gap-10 min-h-0">
+          {/* Stock Info & Calculator Container */}
+          <div className="flex-1 grid grid-cols-1 lg:grid-cols-[6.5fr_3.5fr] gap-6 md:gap-8 lg:gap-10">
+            {/* Stock Info */}
+            <div className="h-full">
+              <Card className="p-4 md:p-6 lg:p-8 h-full flex flex-col">
+                <div className="flex-1 prose prose-invert max-w-none">
+                  {selectedStock.symbol ? (
+                    <>
+                      <StockInfo
+                        selectedStock={selectedStock}
+                        loading={loading}
+                        chartImage={chartImage}
+                      />
+                    </>
+                  ) : (
+                    <WelcomeMessage />
+                  )}
                 </div>
-              </div>
-              
-              <div className="prose prose-invert max-w-none mt-8">
-                <p className="text-gray-300 leading-relaxed mb-6">
-                  PDD Holdings has shown strong performance with a 33% increase year-to-date, 
-                  supported by solid revenue growth and a positive earnings outlook. Analysts rate 
-                  the stock as a Strong Buy highlighting its valuation metrics and growth strategies, 
-                  despite regulatory concerns that could impact future growth.
-                </p>
-                
-                <div className="mt-8">
-                  <h3 className="text-white font-semibold mb-4">Key Highlights:</h3>
-                  <ul className="space-y-3 text-gray-300">
-                    <li>
-                      <strong>Earnings Performance:</strong> PDD's Q2 results exceeded expectations with a 46% 
-                      increase in net profit and 6.69% revenue growth year-over-year, highlighting 
-                      the company's strong operational performance.
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </Card>
-          </div>
-          
-          {/* Calculator */}
-          <div>
-            <Calculator />
-          </div>
-        </div>
+              </Card>
+            </div>
 
-        {/* Recent Viewed Stocks */}
-        <div className="mt-16">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl font-bold text-white">Recent viewed stock</h2>
-            <button className="text-green-400 hover:text-green-300 transition-colors">
-              →
-            </button>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {recentStocks.map((stock) => (
-              <StockCard 
-                key={stock.symbol} 
-                stock={stock} 
-                showChart={true} 
+            {/* Calculator */}
+            <div className="h-full">
+              <Calculator
+                enterpriseValue={selectedStock.enterpriseValue}
+                beta={selectedStock.beta}
+                fcfm={selectedStock.fcfm}
               />
-            ))}
+            </div>
           </div>
+
+          {/* Recent Viewed Stocks - Horizontal Scroll */}
+          <RecentStocks recentStocks={recentStocks} />
         </div>
       </div>
     </MainLayout>
-  )
+  );
 }
