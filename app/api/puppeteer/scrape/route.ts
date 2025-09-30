@@ -20,9 +20,7 @@ export async function POST(request: NextRequest) {
     
     browser = await puppeteer.launch({
       headless: true,
-      executablePath: await chromium.executablePath(),
       args: [
-        ...chromium.args,
         '--no-sandbox',
         '--disable-setuid-sandbox',
         '--disable-dev-shm-usage',
@@ -30,10 +28,8 @@ export async function POST(request: NextRequest) {
         '--no-first-run',
         '--no-zygote',
         '--disable-gpu',
-        '--disable-web-security',
-        '--disable-features=VizDisplayCompositor',
-        '--single-process',
-        '--memory-pressure-off'
+        '--memory-pressure-off',
+        '--max_old_space_size=1024'
       ]
     })
 
