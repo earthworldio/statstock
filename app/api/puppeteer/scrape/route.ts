@@ -109,6 +109,11 @@ export async function POST(request: NextRequest) {
 
        let revenue = 0
        let freeCashFlow = 0
+       let totalCash = 0
+       let totalDebt = 0
+       let operatingCashFlow = 0
+       let profitMargin = 0
+       let returnOnEquity = 0
        
        const statsHighlight = document.querySelector('[data-testid="stats-highlight"]')
        if (statsHighlight) {
@@ -131,18 +136,42 @@ export async function POST(request: NextRequest) {
              if (labelText?.match(/Levered Free Cash Flow\s+\(ttm\)/)) {
                const fcfValue = parseFloat(valueText?.replace('B', '') || '0')
                freeCashFlow = fcfValue
+               stats.freeCashFlow = fcfValue
+             }
+             
+             if (labelText?.match(/Total Cash\s+\(mrq\)/)) {
+               const cashValue = parseFloat(valueText?.replace('B', '') || '0')
+               totalCash = cashValue
+               stats.totalCash = `${cashValue}B`
+             }
+             
+             if (labelText?.match(/Total Debt\s+\(mrq\)/)) {
+               const debtValue = parseFloat(valueText?.replace('M', '') || '0')
+               totalDebt = debtValue
+               stats.totalDebt = `${debtValue}M`
+             }
+             
+             if (labelText?.match(/Operating Cash Flow\s+\(ttm\)/)) {
+               const ocfValue = parseFloat(valueText?.replace('B', '') || '0')
+               operatingCashFlow = ocfValue
+               stats.operatingCashFlow = `${ocfValue}B`
+             }
+             
+             if (labelText?.match(/Profit Margin/)) {
+               const pmValue = parseFloat(valueText?.replace('%', '') || '0')
+               profitMargin = pmValue
+               stats.profitMargin = `${pmValue}%`
+             }
+             
+             if (labelText?.match(/Return on Equity\s+\(ttm\)/)) {
+               const roeValue = parseFloat(valueText?.replace('%', '') || '0')
+               returnOnEquity = roeValue
+               stats.returnOnEquity = `${roeValue}%`
              }
            }
          }
        }
        
-       if (revenue > 0 && freeCashFlow > 0) {
-         const fcfMargin = (freeCashFlow / revenue) * 100
-         stats.fcfm = fcfMargin.toFixed(2) 
-         console.log('Calculated FCF Margin:', stats.fcfm)
-       } else {
-         stats.fcfm = '0.00'
-       }
 
        
       return stats

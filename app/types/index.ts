@@ -4,6 +4,12 @@ export interface Stock {
   price: number
   change: number
   changePercent: number
+  exchange?: string
+  type?: string
+  market?: string
+  active?: boolean
+  currency?: string
+  lastUpdated?: string
 }
 
 export interface StockMetric {

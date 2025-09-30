@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { Search, Loader2 , ArrowBigRightDash } from 'lucide-react'
-import { Stock } from '@/app/types/stock'
+import { Stock } from '@/app/types'
 
 interface StockSearchProps {
   onSearchResults?: (stocks: Stock[]) => void

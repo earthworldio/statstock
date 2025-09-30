@@ -21,7 +21,7 @@ const Calculator: React.FC<CalculatorProps> = ({ enterpriseValue, beta, fcfm }) 
     erp: 4.5,
     g: 3,
     beta: 0,
-    fcfm: 0
+    fcfm: 25
   })
 
   const [showResults, setShowResults] = useState(false)
@@ -90,9 +90,7 @@ const Calculator: React.FC<CalculatorProps> = ({ enterpriseValue, beta, fcfm }) 
 
     const fcf1 = data.ev * ((wacc/100) - (data.g/100))
 
-
     const steadyStateRevenue = fcf1 / (data.fcfm / 100)
-
 
     const results = {
       assumptions: {
@@ -210,9 +208,7 @@ const Calculator: React.FC<CalculatorProps> = ({ enterpriseValue, beta, fcfm }) 
                 <p className="text-gray-300 text-xs leading-relaxed flex flex-col">
                   EV ~${calculationResults.assumptions.ev}B, market expects steady-state revenue of approximately 
                   <span className="text-green-400 font-semibold"> ${calculationResults.calculations.steadyStateRevenue.toFixed(1)} B / year</span>
-                  <span>
                   (FCF margin {calculationResults.assumptions.fcfm}%, growth {calculationResults.assumptions.g}%, WACC ~{calculationResults.calculations.wacc.toFixed(2)}%) to justify valuation.
-                  </span> 
                   
                 </p>
               </div>
@@ -223,61 +219,61 @@ const Calculator: React.FC<CalculatorProps> = ({ enterpriseValue, beta, fcfm }) 
         {/* Metrics Section */}
         {!showResults && (
           <div className="flex-1 space-y-4 lg:space-y-1">
-        {metrics.map((metric, index) => (
-          <div key={metric.label} className="flex items-center justify-between py-2 lg:py-2">
-            <div className="flex items-center space-x-4 lg:space-x-4">
-              <div className="flex items-center justify-center w-6 h-6 lg:w-8 lg:h-8 rounded-full bg-gray-800 text-white text-sm  font-medium">
-                {index + 1}
+          {metrics.map((metric, index) => (
+            <div key={metric.label} className="flex items-center justify-between py-2 lg:py-2">
+              <div className="flex items-center space-x-4 lg:space-x-4">
+                <div className="flex items-center justify-center w-6 h-6 lg:w-8 lg:h-8 rounded-full bg-gray-800 text-white text-sm  font-medium">
+                  {index + 1}
+                </div>
+                <div className="flex items-center space-x-3 lg:space-x-2">
+                  <span className="text-white font-medium w-12 lg:w-16 text-sm ">{metric.label}</span>
+                  <span className="text-gray-300 lg:text-base">{metric.value}</span>
+                </div>
               </div>
-              <div className="flex items-center space-x-3 lg:space-x-2">
-                <span className="text-white font-medium w-12 lg:w-16 text-sm ">{metric.label}</span>
-                <span className="text-gray-300 lg:text-base">{metric.value}</span>
+              <div className="flex items-center space-x-2 lg:space-x-2">
+                <div className="flex items-center">
+                  <button
+                    onClick={() => {
+                      const currentValue = data[metric.field as keyof CalculatorData]
+                      const newValue = Math.max(0, parseFloat((currentValue - 0.1).toFixed(2)))
+                      handleInputChange(metric.field as keyof CalculatorData, newValue.toString())
+                    }}
+                    className="w-6 h-8 lg:w-8 lg:h-10 flex items-center justify-center rounded-l border border-gray-700 bg-gray-800 hover:bg-gray-700 text-white transition-colors"
+                  >
+                    <TrendingDown className="h-3 w-3 text-red-400" />
+                  </button>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={data[metric.field as keyof CalculatorData]}
+                    onChange={(e) => handleInputChange(metric.field as keyof CalculatorData, e.target.value)}
+                    className="w-24 h-8 lg:w-18 lg:h-10 px-2 text-center
+                    text-sm lg:text-sm rounded-none border-t border-b border-gray-700 bg-gray-800 text-white focus:border-green-500 focus:outline-none"
+                  />
+                  <button
+                    onClick={() => {
+                      const currentValue = data[metric.field as keyof CalculatorData]
+                      const newValue = parseFloat((currentValue + 0.1).toFixed(2))
+                      handleInputChange(metric.field as keyof CalculatorData, newValue.toString())
+                    }}
+                    className="w-6 h-8 lg:w-8 lg:h-10 flex items-center justify-center rounded-r border border-gray-700 bg-gray-800 hover:bg-gray-700 text-white transition-colors"
+                  >
+                    <TrendingUp className="h-3 w-3 text-green-400" />
+                  </button>
+                </div>
               </div>
             </div>
-            <div className="flex items-center space-x-2 lg:space-x-2">
-              <div className="flex items-center">
-                <button
-                  onClick={() => {
-                    const currentValue = data[metric.field as keyof CalculatorData]
-                    const newValue = Math.max(0, parseFloat((currentValue - 0.1).toFixed(2)))
-                    handleInputChange(metric.field as keyof CalculatorData, newValue.toString())
-                  }}
-                  className="w-6 h-8 lg:w-8 lg:h-10 flex items-center justify-center rounded-l border border-gray-700 bg-gray-800 hover:bg-gray-700 text-white transition-colors"
-                >
-                  <TrendingDown className="h-3 w-3 text-red-400" />
-                </button>
-                <input
-                  type="number"
-                  step="0.1"
-                  value={data[metric.field as keyof CalculatorData]}
-                  onChange={(e) => handleInputChange(metric.field as keyof CalculatorData, e.target.value)}
-                  className="w-24 h-8 lg:w-18 lg:h-10 px-2 text-center
-                  text-sm lg:text-sm rounded-none border-t border-b border-gray-700 bg-gray-800 text-white focus:border-green-500 focus:outline-none"
-                />
-                <button
-                  onClick={() => {
-                    const currentValue = data[metric.field as keyof CalculatorData]
-                    const newValue = parseFloat((currentValue + 0.1).toFixed(2))
-                    handleInputChange(metric.field as keyof CalculatorData, newValue.toString())
-                  }}
-                  className="w-6 h-8 lg:w-8 lg:h-10 flex items-center justify-center rounded-r border border-gray-700 bg-gray-800 hover:bg-gray-700 text-white transition-colors"
-                >
-                  <TrendingUp className="h-3 w-3 text-green-400" />
-                </button>
-              </div>
-            </div>
+          ))}
+
+          <div className="flex-shrink-0 pt-4 lg:pt-1">
+            <Button 
+              className="w-full" 
+              size="md"
+              onClick={calculateReverseDCF}
+            >
+              Calculate {calculationTypes[0].label}
+            </Button>
           </div>
-        ))}
-        
-        <div className="flex-shrink-0 pt-4 lg:pt-1">
-          <Button 
-            className="w-full" 
-            size="md"
-            onClick={calculateReverseDCF}
-          >
-            Calculate {calculationTypes[0].label}
-          </Button>
-        </div>
         </div>
         )}
         </div>

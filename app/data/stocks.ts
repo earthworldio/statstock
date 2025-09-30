@@ -36,5 +36,10 @@ export const currentStock = {
   priceChangePercent: '',
   enterpriseValue: '',
   beta: '',
-  fcfm: ''
+  fcfm: '',
+  totalCash: '',
+  totalDebt: '',
+  operatingCashFlow: '',
+  profitMargin: '',
+  returnOnEquity: ''
 }
