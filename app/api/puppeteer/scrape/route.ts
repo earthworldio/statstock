@@ -36,22 +36,39 @@ export async function POST(request: NextRequest) {
     const page = await browser.newPage()
     
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36')
+    await page.setExtraHTTPHeaders({ 'Accept-Language': 'en-US,en;q=0.9' })
+
+
+    page.on('console', async (msg) => {
+      try {
+        const values = await Promise.all(msg.args().map(async (arg) => {
+          try { return await arg.jsonValue() } catch { return arg.toString() }
+        }))
+        console.log('[page]', msg.type(), ...values)
+      } catch (e) {
+        console.log('[page]', msg.type(), msg.text())
+      }
+    })
+    page.on('pageerror', (err) => console.error('[pageerror]', err))
+    page.on('requestfailed', (req) => console.warn('[requestfailed]', req.failure()?.errorText, req.url()))
     
     const url = `https://finance.yahoo.com/quote/${symbol}/key-statistics/`
     
     await page.goto(url, { 
       waitUntil: 'domcontentloaded',
-      timeout: 15000 
+      timeout: 30000 
     })
 
     await new Promise(resolve => setTimeout(resolve, 3000))
+   
+    await page.waitForSelector('[data-testid="quote-hdr"]', { timeout: 15000 }).catch(() => {})
+    await page.waitForSelector('[data-testid="stats-highlight"]', { timeout: 15000 }).catch(() => {})
 
        const data = await page.evaluate(() => {
-         console.log('Starting data extraction...')
       
       const stats: any = {}
       
-      const mainContainer = document.querySelector('.container.yf-4vs57a[data-testid="quote-hdr"]')
+      const mainContainer = document.querySelector('[data-testid="quote-hdr"]')
       
       if (!mainContainer) {
         console.log('Main container not found')

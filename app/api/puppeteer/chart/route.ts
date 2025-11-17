@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     const url = `https://finance.yahoo.com/quote/${symbol}/`;
     await page.goto(url, {
       waitUntil: "networkidle2",
-      timeout: 30000,
+      timeout: 60000,
     });
 
     await new Promise((resolve) => setTimeout(resolve, 2000));
