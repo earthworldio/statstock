@@ -17,10 +17,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Launch browser with @sparticuz/chromium for production compatibility
+    const isLocal = process.env.NODE_ENV === 'development' || !process.env.RAILWAY_ENVIRONMENT;
     
     browser = await puppeteer.launch({
-      headless: true,
-      args: [
+      args: isLocal ? [
         '--no-sandbox',
         '--disable-setuid-sandbox',
         '--disable-dev-shm-usage',
@@ -28,9 +29,9 @@ export async function POST(request: NextRequest) {
         '--no-first-run',
         '--no-zygote',
         '--disable-gpu',
-        '--memory-pressure-off',
-        '--max_old_space_size=1024'
-      ]
+      ] : chromium.args,
+      executablePath: isLocal ? undefined : await chromium.executablePath(),
+      headless: true,
     })
 
     const page = await browser.newPage()
@@ -39,18 +40,7 @@ export async function POST(request: NextRequest) {
     await page.setExtraHTTPHeaders({ 'Accept-Language': 'en-US,en;q=0.9' })
 
 
-    page.on('console', async (msg) => {
-      try {
-        const values = await Promise.all(msg.args().map(async (arg) => {
-          try { return await arg.jsonValue() } catch { return arg.toString() }
-        }))
-        console.log('[page]', msg.type(), ...values)
-      } catch (e) {
-        console.log('[page]', msg.type(), msg.text())
-      }
-    })
     page.on('pageerror', (err) => console.error('[pageerror]', err))
-    page.on('requestfailed', (req) => console.warn('[requestfailed]', req.failure()?.errorText, req.url()))
     
     const url = `https://finance.yahoo.com/quote/${symbol}/key-statistics/`
     
@@ -92,105 +82,88 @@ export async function POST(request: NextRequest) {
       }
       
 
-  
-      const allRows = document.querySelectorAll('tr.yf-kbx2lo')
-      for (const row of allRows) {
-        const firstCell = row.querySelector('td.yf-kbx2lo')
-        if (firstCell && firstCell.textContent?.includes('Enterprise Value')) {
-          const cells = row.querySelectorAll('td.yf-kbx2lo')
+      // Robust function to find value by label text in any table row
+      const getValueByLabel = (labelText: string) => {
+        const rows = Array.from(document.querySelectorAll('tr'));
+        for (const row of rows) {
+          const cells = Array.from(row.querySelectorAll('td'));
           if (cells.length >= 2) {
-            let enterpriseValueText = cells[1].textContent?.trim() || ''
-          
-            if (enterpriseValueText.includes('T')) {
-              const numericValue = parseFloat(enterpriseValueText.replace('T', ''))
-              const billionValue = numericValue * 1000 // Convert T to B
-              enterpriseValueText = `${billionValue.toFixed(2)}B`
+            const label = cells[0].textContent?.trim();
+            if (label && label.includes(labelText)) {
+              return cells[1].textContent?.trim();
             }
-            
-            stats.enterpriseValue = enterpriseValueText
-            break
           }
         }
+        return null;
+      };
+
+      const enterpriseValueText = getValueByLabel('Enterprise Value');
+      if (enterpriseValueText) {
+        let evValue = enterpriseValueText;
+        if (evValue.includes('T')) {
+          const numericValue = parseFloat(evValue.replace('T', ''));
+          const billionValue = numericValue * 1000;
+          evValue = `${billionValue.toFixed(2)}B`;
+        }
+        stats.enterpriseValue = evValue;
       }
 
-       const betaRow = document.querySelectorAll('tr.row.yf-vaowmx')
-       for (const row of betaRow) {
+      stats.beta = getValueByLabel('Beta (5Y Monthly)');
+      
+      const revenueText = getValueByLabel('Revenue (ttm)');
+      if (revenueText) {
+        stats.revenue = revenueText;
+      }
+
+      const fcfText = getValueByLabel('Levered Free Cash Flow (ttm)');
+      if (fcfText) {
+        stats.freeCashFlow = fcfText;
+      }
+
+      const cashText = getValueByLabel('Total Cash (mrq)');
+      if (cashText) {
+        stats.totalCash = cashText;
+      }
+
+      const debtText = getValueByLabel('Total Debt (mrq)');
+      if (debtText) {
+        stats.totalDebt = debtText;
+      }
+
+      const ocfText = getValueByLabel('Operating Cash Flow (ttm)');
+      if (ocfText) {
+        stats.operatingCashFlow = ocfText;
+      }
+
+      const profitMarginText = getValueByLabel('Profit Margin');
+      if (profitMarginText) {
+        stats.profitMargin = profitMarginText;
+      }
+
+      const roeText = getValueByLabel('Return on Equity (ttm)');
+       if (roeText) {
+         stats.returnOnEquity = roeText;
+       }
+
+       // Calculate FCF Margin if possible
+       if (stats.revenue && stats.freeCashFlow) {
+         const parseValue = (text: string) => {
+           const num = parseFloat(text.replace(/[A-Z,]/g, ''));
+           if (text.includes('T')) return num * 1000000000000;
+           if (text.includes('B')) return num * 1000000000;
+           if (text.includes('M')) return num * 1000000;
+           if (text.includes('K')) return num * 1000;
+           return num;
+         };
+
+         const rev = parseValue(stats.revenue);
+         const fcf = parseValue(stats.freeCashFlow);
          
-        const labelCell = row.querySelector('td.label.yf-vaowmx')
-        const valueCell = row.querySelector('td.value.yf-vaowmx')
-         
-         if (labelCell && valueCell && labelCell.textContent?.includes('Beta (5Y Monthly)')) {
-           stats.beta = valueCell.textContent?.trim()
-           break
+         if (!isNaN(rev) && !isNaN(fcf) && rev !== 0) {
+           stats.fcfm = ((fcf / rev) * 100).toFixed(2);
          }
        }
 
-
-
-       let revenue = 0
-       let freeCashFlow = 0
-       let totalCash = 0
-       let totalDebt = 0
-       let operatingCashFlow = 0
-       let profitMargin = 0
-       let returnOnEquity = 0
-       
-       const statsHighlight = document.querySelector('[data-testid="stats-highlight"]')
-       if (statsHighlight) {
-         const allRows = statsHighlight.querySelectorAll('tr.yf-vaowmx')
-         
-         for (const row of allRows) {
-           const labelCell = row.querySelector('td.label.yf-vaowmx')
-           const valueCell = row.querySelector('td.value.yf-vaowmx')
-           
-           if (labelCell && valueCell) {
-             const labelText = labelCell.textContent?.trim()
-             const valueText = valueCell.textContent?.trim()
-             
-             if (labelText?.match(/Revenue\s+\(ttm\)/)) {
-               const revenueValue = parseFloat(valueText?.replace('B', '') || '0')
-               revenue = revenueValue
-               stats.revenue = revenueValue
-             }
-             
-             if (labelText?.match(/Levered Free Cash Flow\s+\(ttm\)/)) {
-               const fcfValue = parseFloat(valueText?.replace('B', '') || '0')
-               freeCashFlow = fcfValue
-               stats.freeCashFlow = fcfValue
-             }
-             
-             if (labelText?.match(/Total Cash\s+\(mrq\)/)) {
-               const cashValue = parseFloat(valueText?.replace('B', '') || '0')
-               totalCash = cashValue
-               stats.totalCash = `${cashValue}B`
-             }
-             
-             if (labelText?.match(/Total Debt\s+\(mrq\)/)) {
-               const debtValue = parseFloat(valueText?.replace('M', '') || '0')
-               totalDebt = debtValue
-               stats.totalDebt = `${debtValue}M`
-             }
-             
-             if (labelText?.match(/Operating Cash Flow\s+\(ttm\)/)) {
-               const ocfValue = parseFloat(valueText?.replace('B', '') || '0')
-               operatingCashFlow = ocfValue
-               stats.operatingCashFlow = `${ocfValue}B`
-             }
-             
-             if (labelText?.match(/Profit Margin/)) {
-               const pmValue = parseFloat(valueText?.replace('%', '') || '0')
-               profitMargin = pmValue
-               stats.profitMargin = `${pmValue}%`
-             }
-             
-             if (labelText?.match(/Return on Equity\s+\(ttm\)/)) {
-               const roeValue = parseFloat(valueText?.replace('%', '') || '0')
-               returnOnEquity = roeValue
-               stats.returnOnEquity = `${roeValue}%`
-             }
-           }
-         }
-       }
        
 
        

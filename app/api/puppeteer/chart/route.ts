@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import puppeteer from "puppeteer";
+import chromium from "@sparticuz/chromium";
 
 export async function POST(request: NextRequest) {
   let browser = null;
@@ -14,9 +15,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Launch browser with @sparticuz/chromium for production compatibility
+    const isLocal = process.env.NODE_ENV === 'development' || !process.env.RAILWAY_ENVIRONMENT;
+
     browser = await puppeteer.launch({
-      headless: true,
-      args: [
+      args: isLocal ? [
         "--no-sandbox",
         "--disable-setuid-sandbox",
         "--disable-dev-shm-usage",
@@ -24,7 +27,9 @@ export async function POST(request: NextRequest) {
         "--no-first-run",
         "--no-zygote",
         "--disable-gpu",
-      ],
+      ] : chromium.args,
+      executablePath: isLocal ? undefined : await chromium.executablePath(),
+      headless: true,
     });
 
     const page = await browser.newPage();

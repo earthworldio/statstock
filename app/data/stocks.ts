@@ -37,6 +37,8 @@ export const currentStock = {
   enterpriseValue: '',
   beta: '',
   fcfm: '',
+  revenue: '',
+  freeCashFlow: '',
   totalCash: '',
   totalDebt: '',
   operatingCashFlow: '',

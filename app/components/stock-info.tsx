@@ -1,29 +1,31 @@
-'use client'
+"use client";
 
-import React from 'react'
-import { formatCurrency, formatPercentage } from '../lib/utils'
+import React from "react";
+import { formatCurrency, formatPercentage } from "../lib/utils";
 
 interface StockInfoProps {
   selectedStock: {
-    symbol: string
-    companyName: string
-    currentPrice: string
-    price: number
-    priceChange: string
-    change: number
-    priceChangePercent: string
-    changePercent: number
-    enterpriseValue: string
-    beta: string
-    fcfm: string
-    totalCash: string
-    totalDebt: string
-    operatingCashFlow: string
-    profitMargin: string
-    returnOnEquity: string
-  }
-  loading: boolean
-  chartImage: string | null
+    symbol: string;
+    companyName: string;
+    currentPrice: string;
+    price: number;
+    priceChange: string;
+    change: number;
+    priceChangePercent: string;
+    changePercent: number;
+    enterpriseValue: string;
+    beta: string;
+    fcfm: string;
+    revenue: string;
+    freeCashFlow: string;
+    totalCash: string;
+    totalDebt: string;
+    operatingCashFlow: string;
+    profitMargin: string;
+    returnOnEquity: string;
+  };
+  loading: boolean;
+  chartImage: string | null;
 }
 
 const StockInfo: React.FC<StockInfoProps> = ({
@@ -61,8 +63,7 @@ const StockInfo: React.FC<StockInfoProps> = ({
                 className={`text-lg font-semibold ${
                   (selectedStock.priceChange &&
                     parseFloat(selectedStock.priceChange) >= 0) ||
-                  (!selectedStock.priceChange &&
-                    selectedStock.change >= 0)
+                  (!selectedStock.priceChange && selectedStock.change >= 0)
                     ? "text-green-400"
                     : "text-red-400"
                 }`}
@@ -74,10 +75,7 @@ const StockInfo: React.FC<StockInfoProps> = ({
                 className={`text-lg font-semibold ${
                   (selectedStock.priceChangePercent &&
                     parseFloat(
-                      selectedStock.priceChangePercent.replace(
-                        /[()%]/g,
-                        ""
-                      )
+                      selectedStock.priceChangePercent.replace(/[()%]/g, ""),
                     ) >= 0) ||
                   (!selectedStock.priceChangePercent &&
                     selectedStock.changePercent >= 0)
@@ -102,57 +100,86 @@ const StockInfo: React.FC<StockInfoProps> = ({
           ) : chartImage ? (
             <div className="">
               <div className="w-full">
-                <img
-                  src={chartImage}
-                  alt={`${selectedStock.symbol} Chart`}
-                />
+                <img src={chartImage} alt={`${selectedStock.symbol} Chart`} />
               </div>
             </div>
           ) : null}
-          
+
           {/* Key Statistics */}
           {selectedStock.enterpriseValue && (
             <div className="mt-6">
-              <h3 className="text-lg font-semibold text-white mb-4">Key Statistics</h3>
+              <h3 className="text-lg font-semibold text-white mb-4">
+                Key Statistics
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="flex justify-between items-center py-2 border-b border-gray-700">
                   <span className="text-gray-400">Enterprise Value</span>
-                  <span className="font-semibold">{selectedStock.enterpriseValue}</span>
+                  <span className="font-semibold">
+                    {selectedStock.enterpriseValue}
+                  </span>
                 </div>
-                
+
                 <div className="flex justify-between items-center py-2 border-b border-gray-700">
                   <span className="text-gray-400">Beta (5Y Monthly)</span>
-                  <span className="font-semibold">{selectedStock.beta || 'N/A'}</span>
+                  <span className="font-semibold">
+                    {selectedStock.beta || "N/A"}
+                  </span>
                 </div>
-                
+
+                <div className="flex justify-between items-center py-2 border-b border-gray-700">
+                  <span className="text-gray-400">Revenue (ttm)</span>
+                  <span className="font-semibold">
+                    {selectedStock.revenue || "N/A"}
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-center py-2 border-b border-gray-700">
+                  <span className="text-gray-400">Free Cash Flow (ttm)</span>
+                  <span className="font-semibold">
+                    {selectedStock.freeCashFlow || "N/A"}
+                  </span>
+                </div>
+
                 <div className="flex justify-between items-center py-2 border-b border-gray-700">
                   <span className="text-gray-400">FCF Margin</span>
-                  <span className="font-semibold">{selectedStock.fcfm ? `${selectedStock.fcfm}%` : 'N/A'}</span>
+                  <span className="font-semibold">
+                    {selectedStock.fcfm ? `${selectedStock.fcfm}%` : "N/A"}
+                  </span>
                 </div>
-                
+
                 <div className="flex justify-between items-center py-2 border-b border-gray-700">
                   <span className="text-gray-400">Total Cash</span>
-                  <span className="font-semibold">{selectedStock.totalCash || 'N/A'}</span>
+                  <span className="font-semibold">
+                    {selectedStock.totalCash || "N/A"}
+                  </span>
                 </div>
-                
+
                 <div className="flex justify-between items-center py-2 border-b border-gray-700">
                   <span className="text-gray-400">Total Debt</span>
-                  <span className="font-semibold">{selectedStock.totalDebt || 'N/A'}</span>
+                  <span className="font-semibold">
+                    {selectedStock.totalDebt || "N/A"}
+                  </span>
                 </div>
-                
+
                 <div className="flex justify-between items-center py-2 border-b border-gray-700">
                   <span className="text-gray-400">Operating Cash Flow</span>
-                  <span className="font-semibold">{selectedStock.operatingCashFlow || 'N/A'}</span>
+                  <span className="font-semibold">
+                    {selectedStock.operatingCashFlow || "N/A"}
+                  </span>
                 </div>
-                
+
                 <div className="flex justify-between items-center py-2 border-b border-gray-700">
                   <span className="text-gray-400">Profit Margin</span>
-                  <span className="font-semibold">{selectedStock.profitMargin || 'N/A'}</span>
+                  <span className="font-semibold">
+                    {selectedStock.profitMargin || "N/A"}
+                  </span>
                 </div>
-                
+
                 <div className="flex justify-between items-center py-2">
                   <span className="text-gray-400">Return on Equity</span>
-                  <span className=" font-semibold">{selectedStock.returnOnEquity || 'N/A'}</span>
+                  <span className=" font-semibold">
+                    {selectedStock.returnOnEquity || "N/A"}
+                  </span>
                 </div>
               </div>
             </div>
@@ -160,7 +187,7 @@ const StockInfo: React.FC<StockInfoProps> = ({
         </div>
       </>
     </div>
-  )
-}
+  );
+};
 
-export default StockInfo
+export default StockInfo;

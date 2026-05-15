@@ -10,6 +10,20 @@ export interface Stock {
   active?: boolean
   currency?: string
   lastUpdated?: string
+  companyName?: string
+  currentPrice?: string
+  priceChange?: string
+  priceChangePercent?: string
+  enterpriseValue?: string
+  beta?: string
+  fcfm?: string
+  revenue?: string
+  freeCashFlow?: string
+  totalCash?: string
+  totalDebt?: string
+  operatingCashFlow?: string
+  profitMargin?: string
+  returnOnEquity?: string
 }
 
 export interface StockMetric {

@@ -55,6 +55,8 @@ export default function Home() {
           enterpriseValue: data.data.enterpriseValue || "",
           beta: data.data.beta || "",
           fcfm: data.data.fcfm || "",
+          revenue: data.data.revenue || "",
+          freeCashFlow: data.data.freeCashFlow || "",
           totalCash: data.data.totalCash || "",
           totalDebt: data.data.totalDebt || "",
           operatingCashFlow: data.data.operatingCashFlow || "",
